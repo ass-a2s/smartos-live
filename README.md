@@ -1,3 +1,10 @@
+
+ASS - Custom SmartOS Image (pre-built)
+======================================
+
+* https://datasets.ass.de/public/SmartOS/
+* https://datasets.ass.de/images/
+
 # smartos-live: SmartOS Platform
 
 ## Quickstart
