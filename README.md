@@ -3,7 +3,6 @@ ASS - Custom SmartOS Image (pre-built)
 ======================================
 
 * https://datasets.ass.de/public/SmartOS/
-
 * http://dsapid.root1.ass.de/ui/#!/home
 * https://datasets.ass.de/images/
 
