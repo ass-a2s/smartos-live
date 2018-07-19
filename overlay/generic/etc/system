@@ -161,9 +161,3 @@ set hires_tick=1
 * detach.  We load it early to ensure it is in a crash dump wherever possible.
 *
 forceload: drv/buildstamp
-
-*
-* workaround for https://smartos.org/bugview/OS-7082
-*
-set tx_lso_enable=0
-
