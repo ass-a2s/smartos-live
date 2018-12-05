@@ -353,6 +353,9 @@ MetadataAgent.prototype.purgeZoneCache = function purgeZoneCache(zonename) {
 
     if (self.zoneConnections.hasOwnProperty(zonename)) {
         if (self.zoneConnections[zonename]) {
+            // If deleting the instance before the metadata socket connected, we
+            // must cancel reconnection attempts.
+            self.stopKvmReconnTimer(zonename);
             // it's not undefined, so attempt to close it
             closeZoneConnection(self.zoneConnections[zonename]);
         }
@@ -365,8 +368,8 @@ MetadataAgent.prototype.stopKvmReconnTimer =
 function stopKvmReconnTimer(zonename) {
     var self = this;
 
-    self.log.warn({zonename: zonename},
-        'clearing connection retries for KVM VM.');
+    self.log.info({zonename: zonename},
+        'clearing connection retries for HVM instance.');
 
     if (self.zoneKvmReconnTimers.hasOwnProperty(zonename)) {
         clearTimeout(self.zoneKvmReconnTimers[zonename]);
@@ -465,7 +468,8 @@ MetadataAgent.prototype.start = function start() {
          * For bhyve, the bhyve process recreates the socket every time it
          * starts. This happens when the zone first starts and every time the
          * guest reboots. The 'running' state change will catch the first one.
-         * Guest reboots can be detected by 'init_restarts' incrementing.
+         * Guest reboots can be detected by 'init_restarts' incrementing, which
+         * is seen when "action" is "changed" - not "added".
          */
         if (ev.vm.brand !== 'kvm' && ev.vm.brand !== 'bhyve') {
             return;
@@ -473,7 +477,8 @@ MetadataAgent.prototype.start = function start() {
 
         var restarts = ev.changes.filter(function (change) {
             return (change.path.length === 1
-                && change.path[0] === 'init_restarts');
+                && change.path[0] === 'init_restarts'
+                && change.action === 'changed');
         });
         if (restarts.length !== 0) {
             // The previous zoneConnection should have already been cleaned up
@@ -642,6 +647,8 @@ MetadataAgent.prototype.createKVMServer = function (zopts, callback) {
 
         handler = self.makeMetadataHandler(zopts.zone, kvmstream);
 
+        assert.object(self.zoneConnections[zopts.zone],
+            'zone connection initialized and not yet reaped');
         self.zoneConnections[zopts.zone].conn = kvmstream;
 
         kvmstream.on('connect', function _onConnect() {
