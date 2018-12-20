@@ -207,6 +207,19 @@ if ! $PFEXEC /sbin/mount -F pcfs -o 'foldcase,noatime,hidden,clamptime,rw' \
 fi
 
 #
+# Create the bhyve ppt overlay directory and files within the image.
+#
+if ! mkdir -p "$g_mount_point/overlay/etc"; then
+	fatal 'could not create bhyve ppt overlay directory within image'
+fi
+if ! touch "$g_mount_point/overlay/etc/ppt_aliases"; then
+	fatal 'could not create bhyve ppt overlay ppt_aliases file within image'
+fi
+if ! touch "$g_mount_point/overlay/etc/ppt_matches"; then
+	fatal 'could not create bhyve ppt overlay ppt_matches file within image'
+fi
+
+#
 # Create the grub directory within the image.
 #
 if ! mkdir -p "$g_mount_point/boot/grub"; then
