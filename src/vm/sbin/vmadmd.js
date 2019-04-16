@@ -903,8 +903,11 @@ function updateZoneStatus(ev)
         || (ev.oldstate === 'configured' && ev.newstate === 'incomplete')
         || (ev.oldstate === 'incomplete' && ev.newstate === 'installed')) {
         // just log it
-        log.debug({old: ev.oldstate, new: ev.newstate},
-            'ignoring state transitions before first boot');
+        log.debug({
+            old: ev.oldstate,
+            new: ev.newstate,
+            vm: ev.zonename
+        }, 'ignoring state transitions before first boot');
         return;
     }
 
@@ -2604,6 +2607,14 @@ function main()
                                     upgrade_payload.update_nics.push(
                                         update_nic);
                                 }
+                            }
+
+                            if (upgrade_payload.update_nics.length === 0) {
+                                log.debug({
+                                    vm_uuid: vmobj.uuid
+                                }, 'no nics to update, skipping VM.update()');
+                                finishUpgrade(vmobj);
+                                return;
                             }
 
                             log.info('updating ' + vmobj.uuid + ' with: '
