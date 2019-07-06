@@ -10,7 +10,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -125,6 +125,10 @@ IMAGES_VERSION :=	images-$(shell [[ -f $(ROOT)/configure-buildver ]] && \
     echo $$(head -n1 $(ROOT)/configure-buildver)-)$(shell head -n1 $(STAMPFILE))
 IMAGES_TARBALL :=	output/$(IMAGES_VERSION).tgz
 
+ifdef PLATFORM_PASSWORD
+PLATFORM_PASSWORD_OPT=-p $(PLATFORM_PASSWORD)
+endif
+
 TOOLS_TARGETS = \
 	$(MANCHECK) \
 	$(MANCF) \
@@ -141,8 +145,8 @@ live: world manifest mancheck_conf boot sdcman $(TOOLS_TARGETS) $(MANCF_FILE)
 	@echo $(SUBDIR_MANIFESTS)
 	mkdir -p ${ROOT}/log
 	ALTCTFCONVERT=$(ALTCTFCONVERT) ./tools/build_live \
-	    -m $(ROOT)/$(MANIFEST) -o $(ROOT)/output $(OVERLAYS) $(ROOT)/proto \
-	    $(ROOT)/man/man
+	    -m $(ROOT)/$(MANIFEST) -o $(ROOT)/output $(PLATFORM_PASSWORD_OPT) \
+	    $(OVERLAYS) $(ROOT)/proto $(ROOT)/man/man
 
 boot: $(BOOT_TARBALL)
 
@@ -506,6 +510,9 @@ common-platform-publish:
 	    fi; \
 	done
 	echo $(PLATFORM_STAMP) > latest-build-stamp
+	./tools/build_changelog
+	cp output/gitstatus.json $(PLATFORM_BITS_DIR)
+	cp output/changelog.txt $(PLATFORM_BITS_DIR)
 
 .PHONY: triton-platform-publish
 triton-platform-publish: common-platform-publish
@@ -582,7 +589,6 @@ platform-bits-upload-latest:
 #
 .PHONY: smartos-build
 smartos-build:
-	./tools/build_changelog
 	./tools/build_boot_image -I -r $(ROOT)
 	./tools/build_boot_image -r $(ROOT)
 	./tools/build_vmware -r $(ROOT)
@@ -591,7 +597,6 @@ smartos-build:
 smartos-publish:
 	@echo "# Publish SmartOS platform $(PLATFORM_TIMESTAMP) images"
 	mkdir -p $(PLATFORM_BITS_DIR)
-	cp output/changelog.txt $(PLATFORM_BITS_DIR)
 	cp output/platform-$(PLATFORM_TIMESTAMP)/root.password \
 	    $(PLATFORM_BITS_DIR)/SINGLE_USER_ROOT_PASSWORD.txt
 	cp output-iso/platform-$(PLATFORM_TIMESTAMP).iso \

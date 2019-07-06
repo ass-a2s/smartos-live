@@ -31,8 +31,9 @@ conf_pkgsrcurl="https://download.joyent.com/pub/build/pkgsrc"
 # Build defaults which are unlikely to change, but may be overridden by
 # configure-build.
 #
-if [[ ! -f configure-build ]]; then
-	source default.configure-build
+source default.configure-build
+if [[ -f configure-build ]]; then
+	source configure-build || fatal "failed to source configure-build"
 fi
 
 #
@@ -56,13 +57,6 @@ function fatal
 	[[ -z "$msg" ]] && msg="failed"
 	echo "$conf_arg0: $msg" >&2
 	exit 1
-}
-
-function source_vars
-{
-	if [[ -f "configure-build" ]]; then
-		source "$file" || fatal "failed to source configure-build"
-	fi
 }
 
 function check_loc
@@ -472,15 +466,15 @@ read -r -d '' usage <<EOF
 		this message
 	-p gcc4
 		primary compiler version [default: gcc4]
+	-P password
+		platform root password [default: randomly chosen]
 	-r
 		full strap build (no cache) [default: no]
 	-s gcc7
 		shadow compilers, comma delimited (gcc7,gcc#) [default: none]
 EOF
 
-source_vars
-
-while getopts "cdhp:rs:" arg; do
+while getopts "cdhp:P:rs:" arg; do
 	case $arg in
 	c)
 		ILLUMOS_CLOBBER=yes ;;
@@ -499,6 +493,8 @@ while getopts "cdhp:rs:" arg; do
 	p)
 		PRIMARY_COMPILER=$OPTARG
 		FORCE_STRAP_REBUILD=yes ;;
+	P)
+		PLATFORM_PASSWORD="$OPTARG" ;;
 	r)
 		FORCE_STRAP_REBUILD=yes ;;
 	s)
@@ -531,6 +527,9 @@ PRIMARY_COMPILER_VER=$PRIMARY_COMPILER_VER
 SHADOW_COMPILERS=$SHADOW_COMPILERS
 HOST_GCC4_PREFIX=$HOST_GCC4_PREFIX
 EOF
+
+[[ -n "$PLATFORM_PASSWORD" ]] && \
+	echo "PLATFORM_PASSWORD=$PLATFORM_PASSWORD" >> build.env
 
 echo "Doing pre-flight checks... \c "
 check_loc
