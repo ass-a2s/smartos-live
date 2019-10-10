@@ -132,6 +132,8 @@ JS_CHECK_TARGETS=\
 	vm/tests/test-sysinfo.js \
 	vm/tests/test-tmpfs.js \
 	vm/tests/test-update.js \
+	vm/tests/test-update-kvm.js \
+	vm/tests/test-update-bhyve.js \
 	vm/tests/test-vrrp-nics.js \
 	vm/tests/test-vminfod.js \
 	vm/tests/test-vminfod-zonewatcher.js \
@@ -351,9 +353,10 @@ LIBSDC_TARGETS = \
 
 ETC_TARGETS = \
 	etc/nodename \
-	etc/notices/COPYRIGHT \
 	etc/rtc_config \
 	etc/ssh/sshd_config
+
+ETC_COPYRIGHT_TARGET = etc/notices/COPYRIGHT
 
 BHYVE_TARGETS = \
 	bhyve/uefi-csm-rom.bin \
@@ -375,7 +378,7 @@ check : TARGET = check
 
 all: $(TARGETS) $(USR_LIB_TARGETS) $(SMARTDC_TARGETS) \
     $(SMARTDC_LIB_TARGETS) $(LIBSDC_TARGETS) $(ETC_TARGETS) \
-    $(SUBDIRS) $(BHYVE_TARGETS)
+    $(SUBDIRS) $(BHYVE_TARGETS) $(ETC_COPYRIGHT_TARGET)
 
 
 $(SUBDIRS): FRC
@@ -499,6 +502,8 @@ install: all $(SUBDIRS)
 	mv $(NOMKNOD_ROOT64)/$(NOMKNOD_64) $(NOMKNOD_ROOT64)/$(NOMKNOD_SO)
 	mkdir -p $(DESTDIR)/usr/share/bhyve
 	cp $(BHYVE_TARGETS) $(DESTDIR)/usr/share/bhyve
+	sed -e "s/%%YEAR%%/$$(date +%Y)/1" $(ETC_COPYRIGHT_TARGET) \
+		> $(DESTDIR)/$(ETC_COPYRIGHT_TARGET)
 
 check: $(JSLINT) $(SUBDIRS)
 	@echo "==> Running cstyle..."
