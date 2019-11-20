@@ -1,3 +1,21 @@
+ASS - Custom SmartOS Image (pre-built)
+======================================
+
+* https://datasets.ass.de/public/SmartOS/
+* https://dsapid.root1.ass.de/ui/#!/home
+* https://datasets.ass.de/images/
+
+ASS - Custom Sources
+====================
+
+* https://github.com/ass-a2s/smartos-live
+* https://github.com/ass-a2s/illumos-joyent
+* https://github.com/ass-a2s/illumos-extra
+* https://github.com/ass-a2s/illumos-kvm
+* https://github.com/ass-a2s/illumos-kvm-cmd
+* https://github.com/ass-a2s/mdata-client
+* https://github.com/ass-a2s/sdc-ur-agent
+
 # Quickstart
 
 ```
