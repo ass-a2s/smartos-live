@@ -390,6 +390,14 @@ tab-complete UUIDs rather than having to type them out for every command.
         JSON object on stdin (though it will refuse to work if stdin is a tty),
         or pass property=value arguments on the command line.
 
+        Many properties can be cleared by specifying their value as null in
+        the JSON, e.g.
+
+          { ... "zfs_snapshot_limit": null }
+
+        However this does not work via a direct `vmadm update UUID prop=null`
+        command.
+
         If you pass in a JSON object, that object should be formatted in the
         same manner as a create payload. The only exception is with fields
         that are themselves objects: VM NICs, KVM VM disks, customer_metadata,
@@ -422,7 +430,8 @@ tab-complete UUIDs rather than having to type them out for every command.
         The same pattern is used for customer_metadata, internal_metadata and
         routes.
 
-        In the case of nics, disks, and filesystems, there are 3 special objects:
+        In the case of nics, disks, and filesystems, there are 3 special
+        objects:
 
           add_disks || add_nics || add_filesystems
           remove_disks || remove_nics || remove_filesystems
@@ -438,9 +447,9 @@ tab-complete UUIDs rather than having to type them out for every command.
         remove_nics property should be an array of MAC addresses only (not NIC
         objects).
 
-        For updating filesystems, you use the same format as described above for NICs
-        except that the options are add_filesystems, remove_filesystems and update_filesystems
-        and instead of "mac" these will be keyed on "target".
+        For updating filesystems, you use the same format as described above for
+        NICs except that the options are add_filesystems, remove_filesystems and
+        update_filesystems and instead of "mac" these will be keyed on "target".
 
         For updating disks, you use the same format as described above for NICs
         except that the options are add_disks, remove_disks and update_disks
@@ -866,6 +875,29 @@ tab-complete UUIDs rather than having to type them out for every command.
         update: yes (see caveat in zfs_root_compression section below)
         default: off
 
+    disks.*.guest_block_size:
+
+        Specifies the device block size reported to the guest. By default, the
+        block size of the underlying device is reported to the guest (see
+        'disk.*.block_size' above). This setting will override the default
+        value. It also allows reporting of both a physical and logical block
+        size using a _string_ of the form "logical_size/physical_size" (e.g.
+        "512/4096" to look like a 512e drive. This is useful for guests such as
+        Windows where older versions of the Windows virtio driver always
+        reported the block size of a virtio device as 512 bytes (regardless of
+        the block size presented to the guest) while newer versions of the
+        driver report the actual size of the device being reported by the host.
+
+        NOTE: the value is _always_ a string, and all values must be a power of
+        two.
+
+        type: string of the form "NNN" or "NNN/NNN"
+        vmtype: bhyve
+        listable: yes
+        create: yes
+        update: yes (special, see description in 'update' section above)
+        default: no
+
     disks.*.nocreate:
 
         This parameter indicates whether or not the disk should be created. It
@@ -916,6 +948,19 @@ tab-complete UUIDs rather than having to type them out for every command.
 
         type: string (UUID)
         vmtype: HVM
+        listable: yes (see above)
+        create: yes
+        update: yes (special, see description in 'update' section above)
+        default: no
+
+    disks.*.notrim:
+
+        Explicitly disables TRIM functionality for the disk in the guest. This
+        functionality is also known as UNMAP or DISCARD. This corresponds to
+        the bhyve `nodelete` block-device-option.
+
+        type: boolean
+        vmtype: bhyve
         listable: yes (see above)
         create: yes
         update: yes (special, see description in 'update' section above)
@@ -1007,7 +1052,7 @@ tab-complete UUIDs rather than having to type them out for every command.
         guest.
 
         type: string (kvm: ['virtio','ide','scsi'])
-                     (bhyve: ['virtio','ahci'])
+                     (bhyve: ['virtio','ahci','nvme'])
         vmtype: HVM
         listable: yes (see above)
         create: yes
@@ -2183,7 +2228,7 @@ tab-complete UUIDs rather than having to type them out for every command.
         mechanism to limit the number of filesystems that can be created from
         within the zone. The root user in the GZ is immune to this limit.
 
-        type: integer (0+, set to '' or undefined to unset)
+        type: integer (0+, set to '', null, or undefined to unset)
         vmtype: OS
         listable: no
         create: yes
@@ -2258,7 +2303,7 @@ tab-complete UUIDs rather than having to type them out for every command.
         mechanism to limit the number of snapshots that can be taken from within
         the zone. The root user in the GZ is immune to this limit.
 
-        type: integer (0+, set to '' or undefined to unset)
+        type: integer (0+, set to '', null, or undefined to unset)
         vmtype: OS
         listable: no
         create: yes

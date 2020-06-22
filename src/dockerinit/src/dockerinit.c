@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2017, Joyent, Inc.
+ * Copyright 2020 Joyent, Inc.
  */
 
 /*
@@ -60,6 +60,7 @@
 #include <sys/mntent.h>
 #include <sys/socket.h>
 #include <sys/sockio.h>
+#include <sys/syscall.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/zfd.h>
@@ -84,6 +85,9 @@
 #define RTMBUFSZ sizeof (struct rt_msghdr) + (3 * sizeof (struct sockaddr_in))
 #define ATTACH_CHECK_INTERVAL 200000 // 200ms
 #define ZFD_OPEN_RETRIES 300 /* retries to open a zfd device (10 / second) */
+
+/* This comes from a private header in illumos-joyent */
+#define B_START_NFS_LOCKD 131
 
 int addRoute(const char *, const char *, const char *, int);
 void closeIpadmHandle();
@@ -976,7 +980,7 @@ plumbIf(const char *ifname)
     dlog("PLUMB %s\n", ifname);
 
     /* ipadm_create_if stomps on ifbuf, so create a copy: */
-    (void) strncpy(ifbuf, ifname, sizeof (ifbuf));
+    (void) strlcpy(ifbuf, ifname, sizeof (ifbuf));
 
     if ((status = ipadm_create_if(iph, ifbuf, AF_INET, IPADM_OPT_ACTIVE))
         != IPADM_SUCCESS) {
@@ -992,7 +996,7 @@ plumbIf(const char *ifname)
 }
 
 void
-upIPv6Addr(char *ifname)
+upIPv6Addr(const char *ifname)
 {
     struct lifreq lifr;
     int s;
@@ -1003,7 +1007,7 @@ upIPv6Addr(char *ifname)
             errno, ifname, strerror(errno));
     }
 
-    (void) strncpy(lifr.lifr_name, ifname, sizeof (lifr.lifr_name));
+    (void) strlcpy(lifr.lifr_name, ifname, sizeof (lifr.lifr_name));
     if (ioctl(s, SIOCGLIFFLAGS, (caddr_t)&lifr) < 0) {
         fatal(ERR_UP_IP6, "SIOCGLIFFLAGS error %d: bringing up %s: %s\n",
             errno, ifname, strerror(errno));
@@ -1378,6 +1382,10 @@ mountNfsVolumes()
             mountNfsVolume(data);
         }
     }
+
+     /* Attempt to start lx_lockd if one is not already running. */
+    dlog("DEBUG attempting to start lx_lockd");
+    (void) syscall(SYS_brand, B_START_NFS_LOCKD);
 
     nvlist_free(nvl);
 }

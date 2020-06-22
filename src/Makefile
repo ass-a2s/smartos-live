@@ -174,90 +174,17 @@ C_CHECK_TARGETS=\
 # subdirectory, headers, multiple C++ sources) follow; see associated comments
 # if you are looking for a pattern to copy.
 #
+
+NODE_DESTDIR =	$(PREFIX_NODE)/node_modules/
+
 EXPAT_OBJDIR =	node-expat/build/Release
 EXPAT.NODE =	$(EXPAT_OBJDIR)/node-expat.node
 
-$(EXPAT.NODE) :	WARN_FLAGS +=	-Wno-unused
+$(EXPAT.NODE) :	NODE_WARN_FLAGS += -Wno-unused
 $(EXPAT.NODE) :	CPPFLAGS +=	$(NODE_CPPFLAGS)
 $(EXPAT.NODE) :	CXXFLAGS +=	$(NODE_CXXFLAGS)
 $(EXPAT.NODE) :	LDFLAGS +=	$(NODE_LDFLAGS)
 $(EXPAT.NODE) :	LIBS +=		-lexpat
-
-#
-# The kstat Node add-on follows the same pattern as EXPAT.NODE.
-#
-KSTAT_OBJDIR =	node-kstat/build/Release
-KSTAT.NODE =	$(KSTAT_OBJDIR)/kstat.node
-
-$(KSTAT.NODE) :	WARN_FLAGS +=	-Wno-unused -Wno-write-strings -Wno-sign-compare
-$(KSTAT.NODE) :	CPPFLAGS +=	$(NODE_CPPFLAGS)
-$(KSTAT.NODE) :	CXXFLAGS +=	$(NODE_CXXFLAGS)
-$(KSTAT.NODE) :	LDFLAGS +=	$(NODE_LDFLAGS)
-$(KSTAT.NODE) :	LIBS +=		-lkstat
-
-#
-# The lockfd and zonename Node add-on are based on v8plus, which has its own
-# system of Makefiles.
-#
-V8PLUS_SUBDIR_ENV = \
-			CC=$(GCC) \
-			CXX=$(GXX) \
-			PREFIX_NODE=$(PREFIX_NODE) \
-			NODE_EXEC=$(NODE_EXEC) \
-			OPT_FLAGS="$(OPT_FLAGS)" \
-			CTFCONVERT=$(CTFCONVERT) \
-			CTFMERGE=$(CTFMERGE)
-
-LOCKFD_BINDING.NODE =		node-lockfd/lib/lockfd_binding.node
-LOCKFD_SRC_DIR =		node-lockfd/src
-LOCKFD_V8PLUS_DIR =		node-lockfd/node_modules/v8plus
-
-ZONENAME_BINDING.NODE =		node-zonename/lib/zonename_binding.node
-ZONENAME_SRC_DIR =		node-zonename/src
-ZONENAME_V8PLUS_DIR =		node-zonename/node_modules/v8plus
-
-#
-# The dtrace-provider add-on uses a combination of C, assembly and C++ files in
-# multiple directories.
-#
-DTRACE_PROVIDER_OBJDIR =	node-dtrace-provider/build/Release
-DTRACE_PROVIDER_SRCDIR =	node-dtrace-provider
-DTRACE_PROVIDER.NODE =		$(DTRACE_PROVIDER_OBJDIR)/DTraceProviderBindings.node
-
-DTRACE_PROVIDER_SRCS += \
-			dtrace_argument.cc \
-			dtrace_probe.cc \
-			dtrace_provider.cc
-
-DTRACE_PROVIDER_LIBUSDT_SRCS += \
-			libusdt/usdt.c \
-			libusdt/usdt_dof_file.c \
-			libusdt/usdt_probe.c \
-			libusdt/usdt_dof.c \
-			libusdt/usdt_dof_sections.c
-
-DTRACE_PROVIDER_LIBUSDT_ASM_SRCS += \
-			libusdt/usdt_tracepoints_i386.s
-
-DTRACE_PROVIDER_HDRS += \
-			node-dtrace-provider/dtrace_provider.h \
-			node-dtrace-provider/libusdt/usdt_internal.h \
-			node-dtrace-provider/libusdt/usdt.h
-
-DTRACE_PROVIDER_OBJS += \
-			$(DTRACE_PROVIDER_SRCS:%.cc=$(DTRACE_PROVIDER_OBJDIR)/%.o) \
-			$(DTRACE_PROVIDER_LIBUSDT_SRCS:%.c=$(DTRACE_PROVIDER_OBJDIR)/%.o) \
-			$(DTRACE_PROVIDER_LIBUSDT_ASM_SRCS:%.s=$(DTRACE_PROVIDER_OBJDIR)/%.o)
-
-$(DTRACE_PROVIDER.NODE) :	WARN_FLAGS +=	-Wno-unused -Wno-sign-compare
-$(DTRACE_PROVIDER.NODE) :	CFLAGS +=	$(NODE_CFLAGS)
-$(DTRACE_PROVIDER.NODE) :	CPPFLAGS +=	\
-					$(NODE_CPPFLAGS) \
-					-Inode-dtrace-provider/libusdt
-$(DTRACE_PROVIDER.NODE) :	CXXFLAGS +=	$(NODE_CXXFLAGS)
-$(DTRACE_PROVIDER.NODE) :	LDFLAGS +=	$(NODE_LDFLAGS)
-
-CLEANFILES +=	$(DTRACE_PROVIDER.NODE) $(DTRACE_PROVIDER_OBJS)
 
 #
 # The libuuid Node add-on follows the same pattern as EXPAT.NODE.
@@ -266,11 +193,68 @@ UUID_OBJDIR =	node-libuuid/build/Release
 UUID_SRCDIR =	node-libuuid/src
 UUID.NODE =	$(UUID_OBJDIR)/uuid.node
 
-$(UUID.NODE) :	WARN_FLAGS +=	-Wno-unused -Wno-write-strings -Wno-sign-compare
+$(UUID.NODE) :	NODE_WARN_FLAGS += -Wno-unused -Wno-write-strings
+$(UUID.NODE) :	NODE_WARN_FLAGS += -Wno-sign-compare
 $(UUID.NODE) :	CPPFLAGS +=	$(NODE_CPPFLAGS)
 $(UUID.NODE) :	CXXFLAGS +=	$(NODE_CXXFLAGS)
 $(UUID.NODE) :	LDFLAGS +=	$(NODE_LDFLAGS)
 $(UUID.NODE) :	LIBS +=		-luuid
+
+#
+# The kstat Node add-on follows the same pattern as EXPAT.NODE.
+#
+KSTAT_OBJDIR =	node-kstat/build/Release
+KSTAT.NODE =	$(KSTAT_OBJDIR)/kstat.node
+
+$(KSTAT.NODE) :	NODE_WARN_FLAGS += -Wno-unused -Wno-write-strings
+$(KSTAT.NODE) :	NODE_WARN_FLAGS += -Wno-sign-compare
+$(KSTAT.NODE) :	NODE_WARN_FLAGS += -Wno-format-truncation
+$(KSTAT.NODE) :	CPPFLAGS +=	$(NODE_CPPFLAGS)
+$(KSTAT.NODE) :	CXXFLAGS +=	$(NODE_CXXFLAGS)
+$(KSTAT.NODE) :	LDFLAGS +=	$(NODE_LDFLAGS)
+$(KSTAT.NODE) :	LIBS +=		-lkstat
+
+NODE_SUBDIR_ENV = \
+			V=1 \
+			NODE_DTRACE_PROVIDER_REQUIRE=hard \
+			CC="$(GCC)" \
+			CXX="$(GXX)" \
+			CPPFLAGS="$(NODE_CPPFLAGS)" \
+			CFLAGS="$(NODE_CFLAGS)" \
+			CXXFLAGS="$(NODE_CXXFLAGS)" \
+			LDFLAGS="$(NODE_LDFLAGS)"
+
+DTRACE_PROVIDER_SRCDIR =	node-dtrace-provider
+
+$(DTRACE_PROVIDER_SRCDIR): NODE_WARN_FLAGS += -Wno-sign-compare
+$(DTRACE_PROVIDER_SRCDIR): NODE_WARN_FLAGS += -Wno-unused-parameter
+
+$(DTRACE_PROVIDER_SRCDIR):
+	cd $(DTRACE_PROVIDER_SRCDIR) && $(NODE_SUBDIR_ENV) $(NPM_EXEC) install \
+	    --production --unsafe-perm
+
+CLEANFILES += $(DTRACE_PROVIDER_SRCDIR)/build
+CLEANFILES += $(DTRACE_PROVIDER_SRCDIR)/node_modules
+CLEANFILES += $(DTRACE_PROVIDER_SRCDIR)/src/build
+
+QLOCKER_SRCDIR =		node-qlocker
+QLOCKER_DESTDIR =		$(NODE_DESTDIR)/qlocker
+
+$(QLOCKER_SRCDIR):
+	cd $(QLOCKER_SRCDIR) && $(NODE_SUBDIR_ENV) $(NPM_EXEC) install \
+	    --production --unsafe-perm
+
+CLEANFILES += $(QLOCKER_SRCDIR)/node_modules
+
+ZONENAME_SRCDIR =		node-zonename
+ZONENAME_DESTDIR =		$(NODE_DESTDIR)/zonename
+
+$(ZONENAME_SRCDIR):
+	cd $(ZONENAME_SRCDIR) && $(NODE_SUBDIR_ENV) $(NPM_EXEC) install \
+	    --production --unsafe-perm
+
+CLEANFILES += $(ZONENAME_SRCDIR)/build
+CLEANFILES += $(ZONENAME_SRCDIR)/node_modules
 
 #
 # Rules for building the nomknod related shared object.
@@ -283,8 +267,8 @@ NOMKNOD_64 =		$(NOMKNOD_SO).64
 NOMKNOD_FLAGS =		-nostdlib $(PIC_FLAGS) $(SHARED_FLAGS) \
 			-Wno-unused-parameter
 
-$(NOMKNOD_32) :		CFLAGS += -m32 $(NOMKNOD_FLAGS)
-$(NOMKNOD_64) :		CFLAGS += -m64 $(NOMKNOD_FLAGS)
+$(NOMKNOD_32) :		CFLAGS += $(NOMKNOD_FLAGS)
+$(NOMKNOD_64) :		CFLAGS += $(NOMKNOD_FLAGS)
 NOMKNOD_TARGS =		$(NOMKNOD_32) $(NOMKNOD_64)
 NOMKNOD_ROOT =		$(DESTDIR)/usr/img/lib
 NOMKNOD_ROOT64 =	$(DESTDIR)/usr/img/lib/amd64
@@ -312,17 +296,31 @@ BUILT_TARGETS = \
 	zonememstat \
 	zonemon \
 	$(EXPAT.NODE) \
-	$(DTRACE_PROVIDER.NODE) \
 	$(KSTAT.NODE) \
-	$(LOCKFD_BINDING.NODE) \
-	$(ZONENAME_BINDING.NODE) \
 	$(NOMKNOD_TARGS) \
-	$(SYSLOG.NODE) \
 	$(UUID.NODE)
 
-TARGETS = $(BUILT_TARGETS) \
+NPM_TARGETS = \
+	$(DTRACE_PROVIDER_SRCDIR) \
+	$(ZONENAME_SRCDIR) \
+	$(QLOCKER_SRCDIR)
+
+.PHONY: $(NPM_TARGETS)
+
+USRBIN_TARGETS = \
+	bootparams \
+	disklayout \
+	disklist \
+	disk_size \
+	json \
+	mkzpool \
 	nictagadm \
+	removable_disk \
 	sysinfo
+
+TARGETS = $(BUILT_TARGETS) \
+	$(NPM_TARGETS) \
+	$(USRBIN_TARGETS)
 
 BUILT_USR_LIB_TARGETS = \
 	cryptpass \
@@ -390,7 +388,7 @@ install: all $(SUBDIRS)
 	mkdir -p $(DESTDIR)/var/db/imgadm $(DESTDIR)/var/fw
 	mkdir -p $(DESTDIR)/var/log/sdc/upload $(DESTDIR)/var/log/vm
 	mkdir -p $(DESTDIR)/usr/bin
-	cp -p $(TARGETS) $(DESTDIR)/usr/bin
+	cp -p $(USRBIN_TARGETS) $(DESTDIR)/usr/bin
 	mkdir -p $(DESTDIR)/usr/sbin
 	cp -p fssstat sysevent zonememstat zonemon $(DESTDIR)/usr/sbin
 	cp -p $(USR_LIB_TARGETS) $(DESTDIR)/usr/lib
@@ -404,13 +402,7 @@ install: all $(SUBDIRS)
 	for file in $(ETC_TARGETS); do \
 		cp -r $$file $(DESTDIR)/$$file; \
 	done
-	mkdir -m 0755 -p $(PREFIX_NODE)/node_modules
-	cp -Pr node_modules/* $(PREFIX_NODE)/node_modules
-	cp $(KSTAT.NODE) $(PREFIX_NODE)/node_modules/
-	cp node-lockfd/lib/index.js $(PREFIX_NODE)/node_modules/lockfd.js
-	cp $(LOCKFD_BINDING.NODE) $(PREFIX_NODE)/node_modules/lockfd_binding.node
-	cp node-zonename/lib/index.js $(PREFIX_NODE)/node_modules/zonename.js
-	cp $(ZONENAME_BINDING.NODE) $(PREFIX_NODE)/node_modules/zonename_binding.node
+	# /usr/vm
 	rm -rf $(DESTDIR)/usr/vm
 	cp -PR vm $(DESTDIR)/usr/
 	mkdir -m 0755 -p $(DESTDIR)/usr/vm/node_modules
@@ -421,13 +413,35 @@ install: all $(SUBDIRS)
 	cp -Pr vm/tests/testdata $(DESTDIR)/usr/vm/test/
 	cp vm/runtest $(DESTDIR)/usr/vm/test/
 	cp vm/runtests $(DESTDIR)/usr/vm/test/
-	cp $(EXPAT.NODE) $(PREFIX_NODE)/node_modules/expat_binding.node
-	cp $(UUID.NODE) $(PREFIX_NODE)/node_modules/uuid.node
-	cp $(DTRACE_PROVIDER.NODE) $(PREFIX_NODE)/node_modules/DTraceProviderBindings.node
-	cp node-dtrace-provider/dtrace-provider.js $(PREFIX_NODE)/node_modules/dtrace-provider.js
+	# /usr/node/node_modules
+	mkdir -m 0755 -p $(NODE_DESTDIR)
+	cp -Pr node_modules/* $(NODE_DESTDIR)
+	cp $(KSTAT.NODE) $(NODE_DESTDIR)/
+	cp $(EXPAT.NODE) $(NODE_DESTDIR)/expat_binding.node
+	cp $(UUID.NODE) $(NODE_DESTDIR)/uuid.node
+	mkdir -p $(ZONENAME_DESTDIR)/build/Release
+	cp $(ZONENAME_SRCDIR)/build/Release/zonename.node \
+	    $(ZONENAME_DESTDIR)/build/Release
+	cp $(ZONENAME_SRCDIR)/index.js $(ZONENAME_SRCDIR)/package.json \
+	    $(ZONENAME_DESTDIR)/
+	mkdir -p $(NODE_DESTDIR)/src/build/Release
+	cp $(DTRACE_PROVIDER_SRCDIR)/src/build/Release/DTraceProviderBindings.node \
+	    $(NODE_DESTDIR)/src/build/Release/DTraceProviderBindings.node
+	cp $(DTRACE_PROVIDER_SRCDIR)//dtrace-provider.js \
+	    $(NODE_DESTDIR)/dtrace-provider.js
+	mkdir -p $(QLOCKER_DESTDIR)/lib
+	cp $(QLOCKER_SRCDIR)/index.js $(QLOCKER_DESTDIR)/
+	cp $(QLOCKER_SRCDIR)/lib/qlocker.js $(QLOCKER_DESTDIR)/lib/
+	mkdir -p $(NODE_DESTDIR)/fs-ext/build/Release/
+	cp $(QLOCKER_SRCDIR)/node_modules/fs-ext/package.json \
+	    $(QLOCKER_SRCDIR)/node_modules/fs-ext/fs-ext.js \
+	    $(NODE_DESTDIR)/fs-ext/
+	cp $(QLOCKER_SRCDIR)/node_modules/fs-ext/build/Release/fs-ext.node \
+	    $(NODE_DESTDIR)/fs-ext/build/Release/
 	sed -e "s|var expat.*;|var expat = require('./expat_binding');|" \
 	    < node-expat/lib/node-expat.js \
-	    > $(PREFIX_NODE)/node_modules/node-expat.js
+	    > $(NODE_DESTDIR)/node-expat.js
+	# others
 	cp fswatcher $(DESTDIR)/usr/vm/sbin/fswatcher
 	cp dockerinit/build/dockerinit $(DESTDIR)/usr/vm/sbin/dockerinit
 	cp dockerinit/build/dockerexec $(DESTDIR)/usr/vm/sbin/dockerexec
@@ -450,10 +464,10 @@ install: all $(SUBDIRS)
 	mv $(DESTDIR)/usr/vm/sbin/add-userscript.js \
 	    $(DESTDIR)/usr/vm/sbin/add-userscript
 	mv $(DESTDIR)/usr/vm/sbin/metadata.js $(DESTDIR)/usr/vm/sbin/metadata
-	mkdir -p $(DESTDIR)/usr/share/man/man1
 	sed -e "s|require('dtrace-provider'|require('/usr/node/node_modules/dtrace-provider'|" \
 	    < node-bunyan/lib/bunyan.js \
-	    > $(PREFIX_NODE)/node_modules/bunyan.js
+	    > $(NODE_DESTDIR)/bunyan.js
+	mkdir -p $(DESTDIR)/usr/share/man/man1
 	cp node-bunyan/docs/bunyan.1 $(DESTDIR)/usr/share/man/man1/bunyan.1
 	mkdir -p $(DESTDIR)/usr/bin
 	sed -e 's|^#!/usr/bin/env node.*$$|#!/usr/node/bin/node|' \
@@ -465,7 +479,6 @@ install: all $(SUBDIRS)
 	cp img/package.json $(DESTDIR)/usr/img/package.json
 	cp -PR img/etc $(DESTDIR)/usr/img/
 	cp -PR img/lib $(DESTDIR)/usr/img/
-	cp -PR img/man $(DESTDIR)/usr/img/
 	cp -PR img/node_modules $(DESTDIR)/usr/img/
 	cp -PR img/sbin $(DESTDIR)/usr/img/
 	cp -PR img/test $(DESTDIR)/usr/img/
@@ -482,7 +495,8 @@ install: all $(SUBDIRS)
 	cp -PR fw/sbin $(DESTDIR)/usr/fw/
 	cp -Pr node_modules/onlyif.js $(DESTDIR)/usr/fw/node_modules/onlyif.js
 	cp $(DESTDIR)/usr/node/0.10/node_modules/dtrace-provider.js $(DESTDIR)/usr/fw/node_modules/dtrace-provider.js
-	cp $(DTRACE_PROVIDER.NODE) $(DESTDIR)/usr/fw/node_modules/DTraceProviderBindings.node
+	cp $(DTRACE_PROVIDER_SRCDIR)/src/build/Release/DTraceProviderBindings.node \
+	     $(DESTDIR)/usr/fw/node_modules/DTraceProviderBindings.node
 	sed -e "s|require('dtrace-provider')|require('/usr/fw/node_modules/dtrace-provider')|" \
 	    < node-bunyan/lib/bunyan.js \
 	    > $(DESTDIR)/usr/fw/node_modules/bunyan.js
@@ -552,17 +566,11 @@ manifest:
 	    >> ./$(DESTNAME).tmp
 	mv ./$(DESTNAME).tmp $(DESTDIR)/$(DESTNAME)
 
-.PHONY: mancheck_conf
-mancheck_conf:
-	cp mancheck.conf $(DESTDIR)/$(DESTNAME)
-
 $(JSLINT):
 	(cd $(ROOT); $(MAKE) jsl)
 
 clean: $(SUBDIRS)
 	-rm -f $(CLEANFILES) *.o
-	cd $(LOCKFD_SRC_DIR) && $(MAKE) clean
-	cd $(ZONENAME_SRC_DIR) && $(MAKE) clean
 
 include Makefile.targ
 
@@ -580,62 +588,20 @@ vm/node_modules/props.js: vm/node_modules/proptable.js vm/node_modules/expander.
 #
 $(EXPAT.NODE): node-expat/node-expat.cc
 	@mkdir -p $(@D)
-	$(LINK.cc) $^ $(LIBS)
-
-#
-# node-lockfd and node-zonename are built using the v8plus-based Makefile
-# contained within their projects.  We use LD_OPTIONS, here, to induce the
-# linker to include libc, which gcc as configured in proto.strap does not, but
-# which other C compilers generally do.
-#
-$(LOCKFD_BINDING.NODE): FRC
-	cd $(LOCKFD_SRC_DIR) && \
-	LD_OPTIONS=-lc \
-	$(MAKE) \
-		$(V8PLUS_SUBDIR_ENV) \
-		V8PLUS=$(BASE)/$(LOCKFD_V8PLUS_DIR)
-
-$(ZONENAME_BINDING.NODE): FRC
-	cd $(ZONENAME_SRC_DIR) && \
-	LD_OPTIONS=-lc \
-	$(MAKE) \
-		$(V8PLUS_SUBDIR_ENV) \
-		V8PLUS=$(BASE)/$(ZONENAME_V8PLUS_DIR)
-
-#
-# The next two are used to build libusdt files into
-# $(DTRACE_PROVIDER_OBJDIR)/libusdt/*.o, instead of building libusdt.a
-#
-$(DTRACE_PROVIDER_OBJDIR)/%.o: $(DTRACE_PROVIDER_SRCDIR)/%.c \
-	    $(DTRACE_PROVIDER_HDRS)
-	@mkdir -p $(@D)
-	$(COMPILE.c) $<
-
-$(DTRACE_PROVIDER_OBJDIR)/%.o: $(DTRACE_PROVIDER_SRCDIR)/%.s
-	@mkdir -p $(@D)
-	$(COMPILE.c) $^
-
-$(DTRACE_PROVIDER_OBJDIR)/%.o: $(DTRACE_PROVIDER_SRCDIR)/%.cc \
-	    $(DTRACE_PROVIDER_HDRS)
-	@mkdir -p $(@D)
-	$(COMPILE.cc) $<
-
-$(DTRACE_PROVIDER.NODE): $(DTRACE_PROVIDER_OBJS)
-	@mkdir -p $(@D)
-	$(LINK.cc) $^ $(LIBS)
+	$(LINK32.cc) $^ $(LIBS)
 
 $(KSTAT.NODE): node-kstat/kstat.cc
 	@mkdir -p $(@D)
-	$(LINK.cc) $^ $(LIBS)
+	$(LINK32.cc) $^ $(LIBS)
 
 $(UUID.NODE): $(UUID_SRCDIR)/uuid.cc
 	@mkdir -p $(@D)
-	$(LINK.cc) $^ $(LIBS)
+	$(LINK32.cc) $^ $(LIBS)
 
 $(NOMKNOD_32):	$(NOMKNOD_SRC)
-	$(LINK.c) $^
+	$(LINK32.c) $^
 
 $(NOMKNOD_64):	$(NOMKNOD_SRC)
-	$(LINK.c) $^
+	$(LINK64.c) $^
 
 FRC:
